@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Microbehavior Analyzer - Professional UX Analysis</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary-color: #8b5cf6;
+            --accent-color: #06b6d4;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+            --background: #f8fafc;
+            --surface: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border: #e2e8f0;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, var(--background) 0%, #e0e7ff 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white;
+            padding: 2rem 0;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+            opacity: 0.3;
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .header h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-align: center;
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            text-align: center;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .main {
+            padding: 3rem 0;
+        }
+
+        .card {
+            background: var(--surface);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .card-icon.primary {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+        }
+
+        .card-icon.secondary {
+            background: linear-gradient(135deg, var(--secondary-color), #7c3aed);
+        }
+
+        .card-icon.accent {
+            background: linear-gradient(135deg, var(--accent-color), #0891b2);
+        }
+
+        .card-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .card-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 0.25rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 1rem;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: var(--surface);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .results {
+            display: none;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .metric-card {
+            background: linear-gradient(135deg, var(--surface) 0%, #f1f5f9 100%);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid var(--border);
+        }
+
+        .metric-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid var(--border);
+            margin-bottom: 2rem;
+        }
+
+        .tab {
+            padding: 1rem 2rem;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .tab.active {
+            border-bottom-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+
+        .tab:hover {
+            background: var(--background);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+
+        .table th,
+        .table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .table th {
+            background: var(--background);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .table tr:hover {
+            background: var(--background);
+        }
+
+        .friction-score {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .progress-bar {
+            width: 60px;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success-color), var(--warning-color), var(--error-color));
+            transition: width 0.3s ease;
+        }
+
+        .timeline-item {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border);
+        }
+
+        .timeline-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .timeline-number {
+            width: 32px;
+            height: 32px;
+            background: var(--primary-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            margin-right: 1rem;
+        }
+
+        .timeline-title {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .behavior-item {
+            background: var(--background);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .behavior-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .behavior-details {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .json-viewer {
+            background: var(--background);
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+
+        .journey-step {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .step-number {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-right: 1rem;
+        }
+
+        .step-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            line-height: 1.4;
+        }
+
+        .step-description {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .step-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .detail-section h5 {
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .detail-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        .tag {
+            background: var(--background);
+            color: var(--text-secondary);
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            border: 1px solid var(--border);
+        }
+
+        .tag.success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success-color);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        .tag.warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning-color);
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+
+        .tag.info {
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--accent-color);
+            border-color: rgba(6, 182, 212, 0.3);
+        }
+
+        .microbehaviors-section {
+            border-top: 2px solid var(--border);
+            padding-top: 1.5rem;
+        }
+
+        .microbehaviors-section h5 {
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .microbehaviors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+
+        .microbehavior-card {
+            background: var(--background);
+            border-radius: 12px;
+            padding: 1rem;
+            border: 1px solid var(--border);
+        }
+
+        .mb-title {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+            font-size: 0.9rem;
+        }
+
+        .mb-metrics {
+            display: flex;
+            gap: 1rem;
+            font-size: 0.8rem;
+        }
+
+        .mb-metrics span {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            color: var(--text-secondary);
+        }
+
+        .insights-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .insight-card {
+            background: var(--background);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .insight-card h4 {
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .insight-card p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        .insight-section {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--border);
+        }
+
+        .insight-section h4 {
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .insight-section ul {
+            color: var(--text-secondary);
+            padding-left: 1.5rem;
+        }
+
+        .insight-section li {
+            margin-bottom: 0.5rem;
+            line-height: 1.5;
+        }
+
+        .funnel-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .funnel-step {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 1.5rem;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+        }
+
+        .funnel-step:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .funnel-step h4 {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .funnel-step p {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 1rem;
+        }
+
+        .funnel-step .microbehaviors {
+            margin-top: 1rem;
+        }
+
+        .funnel-step .microbehaviors .behavior-item {
+            margin-bottom: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+            
+            .metrics-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .tab {
+                border-bottom: none;
+                border-right: 2px solid transparent;
+            }
+            
+            .tab.active {
+                border-bottom-color: transparent;
+                border-right-color: var(--primary-color);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .microbehaviors-list {
+            margin-top: 2rem;
+        }
+
+        .microbehavior-item {
+            background: var(--background);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .microbehavior-item:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+
+        .microbehavior-number {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .microbehavior-text {
+            flex: 1;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .microbehavior-arrow {
+            color: var(--text-secondary);
+            font-size: 1.2rem;
+            margin: 0 0.5rem;
+        }
+
+        .behavior-list {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 0;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .behavior-item {
+            display: flex;
+            align-items: center;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .behavior-item:last-child {
+            border-bottom: none;
+        }
+
+        .behavior-item:hover {
+            background: var(--background);
+            transform: translateX(5px);
+        }
+
+        .behavior-number {
+            width: 50px;
+            height: 50px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-right: 1.5rem;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .behavior-content {
+            flex: 1;
+        }
+
+        .behavior-text {
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            font-weight: 500;
+            line-height: 1.4;
+            margin-bottom: 0.25rem;
+        }
+
+        .behavior-context {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .behavior-arrow {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-left: 1rem;
+            opacity: 0.7;
+        }
+
+        .summary-info {
+            background: linear-gradient(135deg, var(--background) 0%, #f1f5f9 100%);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+            text-align: center;
+        }
+
+        .summary-info h3 {
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .summary-info p {
+            color: var(--text-secondary);
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div class="header-content">
+                <h1><i class="fas fa-brain"></i> Microbehavior Analyzer</h1>
+                <p>Extract micro-behaviors from website content</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="main">
+        <div class="container">
+            <!-- Input Form -->
+            <div class="card fade-in">
+                <div class="card-header">
+                    <div class="card-icon primary">
+                        <i class="fas fa-cog"></i>
+                    </div>
+                    <div>
+                        <div class="card-title">Microbehavior Analysis</div>
+                        <div class="card-subtitle">Extract micro-behaviors from website content</div>
+                    </div>
+                </div>
+
+                <form id="analysisForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="url">
+                                <i class="fas fa-link"></i> Website URL
+                            </label>
+                            <input type="url" id="url" class="form-input" placeholder="https://example.com" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label" for="goal">
+                                <i class="fas fa-bullseye"></i> Business Goal (Optional)
+                            </label>
+                            <input type="text" id="goal" class="form-input" placeholder="e.g., Increase conversions, Improve user engagement">
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn" id="analyzeBtn">
+                        <i class="fas fa-search"></i> Extract Microbehaviors
+                    </button>
+                </form>
+            </div>
+
+            <!-- Loading State -->
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <h3>Analyzing your website's user journey...</h3>
+                <p>This process involves crawling pages, analyzing content, and identifying conversion funnel steps with microbehaviors.</p>
+            </div>
+
+            <!-- Results -->
+            <div class="results" id="results">
+                <!-- Microbehaviors List -->
+                <div class="card fade-in">
+                    <div class="card-header">
+                        <div class="card-icon primary">
+                            <i class="fas fa-list"></i>
+                        </div>
+                        <div>
+                            <div class="card-title">Microbehaviors</div>
+                            <div class="card-subtitle">User micro-behaviors extracted from website content</div>
+                        </div>
+                        <button class="btn" id="downloadPdfBtn" style="margin-left: auto;">
+                            <i class="fas fa-download"></i> Download PDF
+                        </button>
+                    </div>
+
+                    <div id="microbehaviorsList" class="microbehaviors-list">
+                        <!-- Microbehaviors will be populated here -->
+                    </div>
+                </div>
+                        </div>
+                        </div>
+                    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        let currentData = null;
+
+        // Form submission
+        document.getElementById('analysisForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const url = document.getElementById('url').value;
+            const goal = document.getElementById('goal').value;
+            
+            if (!url) {
+                showError('Please enter a valid URL');
+                return;
+            }
+            
+            clearError();
+            showLoading();
+            
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        url: url,
+                        goal: goal
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    currentData = result.data;
+                    displayMicrobehaviors(result.data);
+                    showResults();
+                } else {
+                    const errorMessage = result.error || 'Analysis failed';
+                    const errorDetails = result.details || '';
+                    showError(`${errorMessage}${errorDetails ? ': ' + errorDetails : ''}`);
+                }
+            } catch (error) {
+                showError('Network error: ' + error.message);
+            } finally {
+                hideLoading();
+            }
+        });
+        
+        // PDF Download functionality
+        document.getElementById('downloadPdfBtn').addEventListener('click', function() {
+            if (!currentData) {
+                showError('No data available to download');
+                return;
+            }
+            
+            generatePDF(currentData);
+        });
+
+                function displayMicrobehaviors(reportData) {
+            const microbehaviorsList = document.getElementById('microbehaviorsList');
+            const journeySteps = reportData.journey_steps || [];
+            
+            if (journeySteps.length === 0) {
+                microbehaviorsList.innerHTML = '<p>No microbehaviors found.</p>';
+                return;
+            }
+
+            // Extract all microbehaviors in sequence
+            const allMicrobehaviors = [];
+                journeySteps.forEach(step => {
+                if (step.microbehaviors && step.microbehaviors.length > 0) {
+                    step.microbehaviors.forEach(mb => {
+                        allMicrobehaviors.push({
+                            behavior: mb.behavior,
+                            context: mb.step_context || 'User Action'
+                        });
+                    });
+                }
+            });
+
+            if (allMicrobehaviors.length === 0) {
+                microbehaviorsList.innerHTML = '<p>No microbehaviors found in the journey steps.</p>';
+                return;
+            }
+
+            // Display summary info
+            let listHTML = `
+                <div class="summary-info">
+                    <h3>${allMicrobehaviors.length} Key Microbehaviors</h3>
+                    <p>User actions extracted from ${reportData.url}</p>
+                </div>
+            `;
+
+            // Display as numbered list
+            listHTML += '<div class="behavior-list">';
+            allMicrobehaviors.forEach((item, index) => {
+                const isLast = index === allMicrobehaviors.length - 1;
+                listHTML += `
+                    <div class="behavior-item">
+                        <div class="behavior-number">${index + 1}</div>
+                        <div class="behavior-content">
+                            <div class="behavior-text">${item.behavior}</div>
+                            <div class="behavior-context">→ ${item.context}</div>
+                </div>
+                        ${!isLast ? '<div class="behavior-arrow">↓</div>' : ''}
+                </div>
+            `;
+            });
+            listHTML += '</div>';
+
+            microbehaviorsList.innerHTML = listHTML;
+        }
+
+        function generatePDF(reportData) {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            // Title
+            doc.setFontSize(20);
+            doc.text('Microbehavior Analysis Report', 20, 30);
+            
+            // URL and basic info
+            doc.setFontSize(12);
+            doc.text(`Website: ${reportData.url}`, 20, 50);
+            if (reportData.goal) {
+                doc.text(`Goal: ${reportData.goal}`, 20, 60);
+            }
+            
+            // Extract microbehaviors
+            const journeySteps = reportData.journey_steps || [];
+            const allMicrobehaviors = [];
+            journeySteps.forEach(step => {
+                if (step.microbehaviors && step.microbehaviors.length > 0) {
+                    step.microbehaviors.forEach(mb => {
+                        allMicrobehaviors.push({
+                            behavior: mb.behavior,
+                            context: mb.step_context || 'User Action'
+                        });
+                    });
+                }
+            });
+            
+            // Microbehaviors section
+            doc.setFontSize(16);
+            doc.text(`${allMicrobehaviors.length} Key Microbehaviors:`, 20, 80);
+            
+            let yPosition = 100;
+            doc.setFontSize(11);
+            
+            allMicrobehaviors.forEach((item, index) => {
+                const text = `${index + 1}. ${item.behavior}`;
+                const context = `   → ${item.context}`;
+                
+                const lines = doc.splitTextToSize(text, 170);
+                const contextLines = doc.splitTextToSize(context, 170);
+                
+                // Check if we need a new page
+                if (yPosition + ((lines.length + contextLines.length) * 6) + 15 > 280) {
+                    doc.addPage();
+                    yPosition = 20;
+                }
+                
+                // Main behavior text
+                doc.setFont(undefined, 'bold');
+                doc.text(lines, 20, yPosition);
+                yPosition += lines.length * 6;
+                
+                // Context text
+                doc.setFont(undefined, 'italic');
+                doc.text(contextLines, 20, yPosition);
+                yPosition += contextLines.length * 6 + 8;
+                
+                // Add arrow except for last item
+                if (index < allMicrobehaviors.length - 1) {
+                    doc.setFont(undefined, 'normal');
+                    doc.text('↓', 25, yPosition);
+                    yPosition += 8;
+                }
+                
+                doc.setFont(undefined, 'normal'); // Reset font
+            });
+            
+            // Save the PDF
+            const fileName = `microbehaviors-${new Date().toISOString().split('T')[0]}.pdf`;
+            doc.save(fileName);
+        }
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('results').style.display = 'none';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function showError(message) {
+            let errorDiv = document.getElementById('errorDisplay');
+            if (!errorDiv) {
+                errorDiv = document.createElement('div');
+                errorDiv.id = 'errorDisplay';
+                errorDiv.className = 'card fade-in';
+                errorDiv.style.background = 'linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%)';
+                errorDiv.style.border = '2px solid var(--error-color)';
+                errorDiv.style.marginBottom = '2rem';
+                errorDiv.innerHTML = `
+                    <div class="card-header">
+                        <div class="card-icon" style="background: var(--error-color);">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div>
+                            <div class="card-title" style="color: var(--error-color);">Analysis Error</div>
+                            <div class="card-subtitle">Please review the error and try again</div>
+                        </div>
+                    </div>
+                    <div style="color: var(--error-color); font-weight: 500; padding: 1rem 0;">
+                        ${message}
+                    </div>
+                `;
+                
+                const formCard = document.querySelector('.card');
+                formCard.parentNode.insertBefore(errorDiv, formCard.nextSibling);
+            } else {
+                const errorText = errorDiv.querySelector('div[style*="color: var(--error-color)"]');
+                if (errorText) {
+                    errorText.textContent = message;
+                }
+            }
+            
+            document.getElementById('results').style.display = 'none';
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function clearError() {
+            const errorDiv = document.getElementById('errorDisplay');
+            if (errorDiv) {
+                errorDiv.remove();
+            }
+        }
+
+        function showResults() {
+            document.getElementById('results').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

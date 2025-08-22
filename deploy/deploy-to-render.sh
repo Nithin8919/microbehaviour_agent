@@ -1,0 +1,21 @@
+#!/bin/bash
+
+echo "🎨 Setting up Render deployment..."
+
+echo "Instructions for Render deployment:"
+echo "1. Go to https://render.com and sign up/login"
+echo "2. Connect your GitHub repository"
+echo "3. Create a new Web Service"
+echo "4. Use these settings:"
+echo "   - Build Command: pip install -r requirements.txt"
+echo "   - Start Command: python app/run.py"
+echo "   - Environment: Python 3"
+echo ""
+echo "5. Add environment variable:"
+echo "   - Key: OPENAI_API_KEY"
+echo "   - Value: [your OpenAI API key]"
+echo ""
+echo "6. Deploy!"
+echo ""
+echo "The render.yaml file in the root directory has all the configuration."
+echo "✅ Just push to GitHub and Render will auto-deploy!"
