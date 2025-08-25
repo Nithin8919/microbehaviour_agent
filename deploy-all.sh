@@ -17,3 +17,5 @@ echo "=== Deployment Complete ==="
 echo "Backend API: http://localhost:5000"
 echo "Frontend: http://localhost:8000"
 echo "Health Check: http://localhost:5000/health"
+
+

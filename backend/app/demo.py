@@ -1,7 +1,13 @@
+import os
 from flask import Flask, render_template, jsonify
 import json
 
-app = Flask(__name__)
+# Get the directory where this file is located
+current_dir = os.path.dirname(os.path.abspath(__file__))
+template_dir = os.path.join(current_dir, 'templates')
+
+# Initialize Flask app with explicit template folder
+app = Flask(__name__, template_folder=template_dir)
 
 @app.route('/')
 def index():

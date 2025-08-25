@@ -9,3 +9,5 @@ cd frontend
 ./deploy/deploy-frontend.sh
 
 echo "Frontend deployment completed!"
+
+

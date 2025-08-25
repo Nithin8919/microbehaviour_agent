@@ -18,3 +18,5 @@ docker run -d \
 echo "Backend deployed successfully!"
 echo "API available at: http://localhost:5000"
 echo "Health check: http://localhost:5000/health"
+
+

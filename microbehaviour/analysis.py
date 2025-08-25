@@ -211,7 +211,17 @@ def analyze_user_journey(url: str, max_pages: int = 3, max_depth: int = 1) -> Us
     
     logger.info(f"✓ Total content blocks extracted: {len(all_blocks)}")
     
-    if not all_blocks:
+    # Log detailed content analysis for debugging
+    if all_blocks:
+        logger.info(f"📊 Content analysis summary:")
+        total_words = sum(b.get('text_words', 0) for b in all_blocks)
+        total_ctas = sum(len(b.get('local_ctas', [])) for b in all_blocks)
+        total_forms = sum(len(b.get('local_forms', [])) for b in all_blocks)
+        logger.info(f"  Total words: {total_words}")
+        logger.info(f"  Total CTAs: {total_ctas}")
+        logger.info(f"  Total forms: {total_forms}")
+        logger.info(f"  Average words per block: {total_words // len(all_blocks) if all_blocks else 0}")
+    else:
         logger.error("✗ No content blocks were extracted from any pages!")
         # Create a minimal fallback report
         return UserJourneyReport(
@@ -282,14 +292,23 @@ def analyze_user_journey(url: str, max_pages: int = 3, max_depth: int = 1) -> Us
     # Call LLM for journey analysis
     try:
         logger.info(f"  - Calling analyze_page_text with {len(text_sample)} chars of text")
+        logger.info(f"  📊 Content blocks summary:")
+        logger.info(f"    Total blocks: {len(all_blocks)}")
+        logger.info(f"    Total CTAs: {len(allowed_ctas)}")
+        logger.info(f"    Total form fields: {len(form_fields)}")
+        logger.info(f"    Text sample length: {len(text_sample)}")
+        
         raw = analyze_page_text(url, text_sample, messages=messages)
         logger.info(f"  ✓ LLM returned response: {type(raw)}")
         logger.info(f"  📄 Raw response preview: {str(raw)[:200]}...")
+        logger.info(f"  📏 Response length: {len(str(raw))} characters")
         
         data = extract_json_maybe(str(raw)) if isinstance(raw, (str,)) else raw
         logger.info(f"  ✓ Parsed JSON data: {type(data)}")
         if isinstance(data, dict):
             logger.info(f"  📊 Data keys: {list(data.keys())}")
+            if 'journey_steps' in data:
+                logger.info(f"  📈 Journey steps count: {len(data['journey_steps'])}")
         else:
             logger.warning(f"  ⚠️ Data is not a dict: {data}")
             
