@@ -1,0 +1,16 @@
+{
+  "name": "microbehaviour-frontend",
+  "version": "1.0.0",
+  "description": "Frontend for Microbehaviour Analysis Tool",
+  "main": "index.html",
+  "scripts": {
+    "start": "python -m http.server 8000",
+    "build": "echo 'Frontend build complete'",
+    "test": "echo 'Frontend tests complete'"
+  },
+  "keywords": ["microbehaviour", "frontend", "analysis"],
+  "author": "Microbehaviour Team",
+  "license": "MIT",
+  "devDependencies": {},
+  "dependencies": {}
+}

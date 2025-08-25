@@ -145,3 +145,6 @@ If you encounter issues:
 3. Ensure your OpenAI API key is valid and has credits
 
 Happy deploying! 🎉
+
+
+

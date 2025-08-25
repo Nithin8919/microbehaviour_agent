@@ -125,14 +125,14 @@ def demo_conversion_flows():
             print(f"    👀 {step}")  # Mark viewing/reading
     
     print(f"\n💡 KEY IMPROVEMENTS:")
+    print("   • FOCUSED approach: 6-9 critical behaviors only (quality over quantity)")
     print("   • Realistic browsing behavior BEFORE clicking CTAs")
     print("   • Natural scrolling patterns and content exploration")
-    print("   • Section-by-section discovery (services → testimonials → pricing)")
     print("   • Trust-building moments (reading reviews, checking guarantees)")
     print("   • Complete conversion paths from landing to goal achievement")
     print("   • Realistic form field interactions with example data")
-    print("   • Time/option selection steps included")
     print("   • Clear success confirmations and next steps")
+    print("   • Strictly below 10 microbehaviors - most essential actions only")
     print("   📜 Scroll actions: 📝 Form filling: 🎯 CTA clicks: ✅ Success steps")
     
     print("\n" + "="*80)
