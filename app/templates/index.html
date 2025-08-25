@@ -967,6 +967,12 @@
 
                 function displayMicrobehaviors(reportData) {
             const microbehaviorsList = document.getElementById('microbehaviorsList');
+            
+            // Debug: Log the actual data structure
+            console.log('Full report data:', reportData);
+            console.log('Journey steps:', reportData.journey_steps);
+            console.log('Data keys:', Object.keys(reportData));
+            
             const journeySteps = reportData.journey_steps || [];
             
             if (journeySteps.length === 0) {
@@ -976,7 +982,7 @@
 
             // Extract all microbehaviors in sequence
             const allMicrobehaviors = [];
-                journeySteps.forEach(step => {
+            journeySteps.forEach(step => {
                 if (step.microbehaviors && step.microbehaviors.length > 0) {
                     step.microbehaviors.forEach(mb => {
                         allMicrobehaviors.push({
@@ -992,28 +998,32 @@
                 return;
             }
 
+            // Limit to max 10 microbehaviors for clean display
+            const displayMicrobehaviors = allMicrobehaviors.slice(0, 10);
+            const totalMicrobehaviors = allMicrobehaviors.length;
+
             // Display summary info
             let listHTML = `
                 <div class="summary-info">
-                    <h3>${allMicrobehaviors.length} Key Microbehaviors</h3>
-                    <p>User actions extracted from ${reportData.url}</p>
+                    <h3>${totalMicrobehaviors} Key Microbehaviors</h3>
+                    <p>User actions extracted from ${reportData.url}${totalMicrobehaviors > 10 ? ' (showing first 10)' : ''}</p>
                 </div>
             `;
 
             // Display as numbered list
             listHTML += '<div class="behavior-list">';
-            allMicrobehaviors.forEach((item, index) => {
-                const isLast = index === allMicrobehaviors.length - 1;
+            displayMicrobehaviors.forEach((item, index) => {
+                const isLast = index === displayMicrobehaviors.length - 1;
                 listHTML += `
                     <div class="behavior-item">
                         <div class="behavior-number">${index + 1}</div>
                         <div class="behavior-content">
                             <div class="behavior-text">${item.behavior}</div>
                             <div class="behavior-context">→ ${item.context}</div>
-                </div>
+                        </div>
                         ${!isLast ? '<div class="behavior-arrow">↓</div>' : ''}
-                </div>
-            `;
+                    </div>
+                `;
             });
             listHTML += '</div>';
 
@@ -1077,53 +1087,76 @@
             doc.text(`• Complexity: ${complexity}`, 25, yPosition);
             yPosition += 20;
             
-            // 9-Step Conversion Funnel
+            // Key Microbehaviors (from actual scraped content, max 10)
             doc.setFontSize(16);
             doc.setFont(undefined, 'bold');
             doc.setTextColor(41, 128, 185);
-            doc.text('9-Step Conversion Funnel', 20, yPosition);
+            doc.text('Key Microbehaviors', 20, yPosition);
             yPosition += 20;
             
-            const funnelSteps = [
-                { name: 'Landing', desc: 'User arrives via ad, social link, or referral' },
-                { name: 'Headline', desc: 'User reads main headline + subheadline' },
-                { name: 'Credibility', desc: 'User glances at credibility elements' },
-                { name: 'Process', desc: 'User understands the framework ("How It Works")' },
-                { name: 'Social Proof', desc: 'User reviews testimonials and case studies' },
-                { name: 'Pricing', desc: 'User checks pricing table and compares features' },
-                { name: 'CTA', desc: 'User clicks conversion buttons' },
-                { name: 'Form', desc: 'User fills out booking/contact forms' },
-                { name: 'Confirmation', desc: 'User confirms calendar slots or completes action' }
-            ];
+            const journeySteps = reportData.journey_steps || [];
+            const allMicrobehaviors = [];
             
-            funnelSteps.forEach((step, index) => {
-                // Check if we need a new page
-                if (yPosition > 250) {
-                    doc.addPage();
-                    yPosition = 30;
-                }
-                
-                // Step number and name
-                doc.setFontSize(12);
-                doc.setFont(undefined, 'bold');
-                doc.setTextColor(52, 152, 219);
-                doc.text(`${index + 1}. ${step.name}`, 20, yPosition);
-                yPosition += 8;
-                
-                // Step description
-                doc.setFontSize(10);
-                doc.setFont(undefined, 'normal');
-                doc.setTextColor(0, 0, 0);
-                doc.text(step.desc, 30, yPosition);
-                yPosition += 15;
-                
-                // Add arrow between steps (except last)
-                if (index < funnelSteps.length - 1) {
-                    doc.setTextColor(150, 150, 150);
-                    doc.text('↓', 15, yPosition);
-                    yPosition += 10;
+            // Extract all microbehaviors from journey steps
+            journeySteps.forEach(step => {
+                if (step.microbehaviors && step.microbehaviors.length > 0) {
+                    step.microbehaviors.forEach(mb => {
+                        allMicrobehaviors.push({
+                            behavior: mb.behavior,
+                            context: mb.step_context || 'User Action'
+                        });
+                    });
                 }
             });
+            
+            if (allMicrobehaviors.length > 0) {
+                // Limit to max 10 microbehaviors for clean PDF (same as website)
+                const displayMicrobehaviors = allMicrobehaviors.slice(0, 10);
+                const totalMicrobehaviors = allMicrobehaviors.length;
+                
+                displayMicrobehaviors.forEach((item, index) => {
+                    // Check if we need a new page
+                    if (yPosition > 250) {
+                        doc.addPage();
+                        yPosition = 30;
+                    }
+                    
+                    // Microbehavior number and behavior
+                    doc.setFontSize(12);
+                    doc.setFont(undefined, 'bold');
+                    doc.setTextColor(52, 152, 219);
+                    doc.text(`${index + 1}. ${item.behavior}`, 20, yPosition);
+                    yPosition += 8;
+                    
+                    // Context
+                    doc.setFontSize(10);
+                    doc.setFont(undefined, 'normal');
+                    doc.setTextColor(0, 0, 0);
+                    doc.text(`→ ${item.context}`, 30, yPosition);
+                    yPosition += 15;
+                    
+                    // Add arrow between microbehaviors (except last)
+                    if (index < displayMicrobehaviors.length - 1) {
+                        doc.setTextColor(150, 150, 150);
+                        doc.text('↓', 15, yPosition);
+                        yPosition += 10;
+                    }
+                });
+                
+                // Add note if more than 10 microbehaviors were found
+                if (totalMicrobehaviors > 10) {
+                    yPosition += 10;
+                    doc.setFontSize(9);
+                    doc.setTextColor(100, 100, 100);
+                    doc.text(`Note: Found ${totalMicrobehaviors} total microbehaviors, showing first 10 for clarity.`, 20, yPosition);
+                    yPosition += 15;
+                }
+            } else {
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'normal');
+                doc.text('No microbehaviors found in the analysis.', 20, yPosition);
+                yPosition += 15;
+            }
             
             yPosition += 15;
             

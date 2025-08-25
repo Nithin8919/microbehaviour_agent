@@ -866,8 +866,8 @@
                             <i class="fas fa-list"></i>
                         </div>
                         <div>
-                            <div class="card-title">Microbehaviors</div>
-                            <div class="card-subtitle">User micro-behaviors extracted from website content</div>
+                            <div class="card-title">User Journey Analysis</div>
+                            <div class="card-subtitle">Journey steps extracted from website content analysis</div>
                         </div>
                                 <button class="btn" id="downloadPdfBtn" style="margin-left: auto; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; font-weight: 600; padding: 12px 24px; border-radius: 8px; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3); transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.4)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.3)'">
             <i class="fas fa-download"></i> Download PDF
@@ -970,50 +970,36 @@
             const journeySteps = reportData.journey_steps || [];
             
             if (journeySteps.length === 0) {
-                microbehaviorsList.innerHTML = '<p>No microbehaviors found.</p>';
+                microbehaviorsList.innerHTML = '<p>No journey steps found.</p>';
                 return;
             }
 
-            // Extract all microbehaviors in sequence
-            const allMicrobehaviors = [];
-                journeySteps.forEach(step => {
-                if (step.microbehaviors && step.microbehaviors.length > 0) {
-                    step.microbehaviors.forEach(mb => {
-                        allMicrobehaviors.push({
-                            behavior: mb.behavior,
-                            context: mb.step_context || 'User Action'
-                        });
-                    });
-                }
-            });
-
-            if (allMicrobehaviors.length === 0) {
-                microbehaviorsList.innerHTML = '<p>No microbehaviors found in the journey steps.</p>';
-                return;
-            }
+            // Limit to max 10 steps for clean display
+            const displaySteps = journeySteps.slice(0, 10);
+            const totalSteps = journeySteps.length;
 
             // Display summary info
             let listHTML = `
                 <div class="summary-info">
-                    <h3>${allMicrobehaviors.length} Key Microbehaviors</h3>
-                    <p>User actions extracted from ${reportData.url}</p>
+                    <h3>User Journey Analysis</h3>
+                    <p>Found ${totalSteps} journey steps for ${reportData.url}${totalSteps > 10 ? ' (showing first 10)' : ''}</p>
                 </div>
             `;
 
-            // Display as numbered list
+            // Display the actual journey steps from scraped content (max 10)
             listHTML += '<div class="behavior-list">';
-            allMicrobehaviors.forEach((item, index) => {
-                const isLast = index === allMicrobehaviors.length - 1;
+            displaySteps.forEach((step, index) => {
+                const isLast = index === displaySteps.length - 1;
                 listHTML += `
                     <div class="behavior-item">
                         <div class="behavior-number">${index + 1}</div>
                         <div class="behavior-content">
-                            <div class="behavior-text">${item.behavior}</div>
-                            <div class="behavior-context">→ ${item.context}</div>
-                </div>
+                            <div class="behavior-text">${step.step_name || `Step ${index + 1}`}</div>
+                            <div class="behavior-context">${step.description || 'No description available'}</div>
+                        </div>
                         ${!isLast ? '<div class="behavior-arrow">↓</div>' : ''}
-                </div>
-            `;
+                    </div>
+                `;
             });
             listHTML += '</div>';
 
@@ -1032,388 +1018,147 @@
                 creator: 'Microbehaviour Tool'
             });
             
-            // Helper function to add page numbers
-            function addPageNumber(pageNum) {
-                const pageWidth = doc.internal.pageSize.width;
-                doc.setFontSize(10);
-                doc.setTextColor(100, 100, 100);
-                doc.text(`Page ${pageNum}`, pageWidth - 25, 285);
-                doc.setTextColor(0, 0, 0);
-            }
+            let yPosition = 30;
             
-            // Helper function to add header
-            function addHeader() {
-                doc.setFillColor(41, 128, 185);
-                doc.rect(0, 0, 210, 25, 'F');
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(18);
-                doc.setFont(undefined, 'bold');
-                doc.text('🔄 User Journey Analysis Report', 20, 17);
-                doc.setTextColor(0, 0, 0);
-            }
-            
-            // Helper function to add section divider
-            function addSectionDivider(yPos, title) {
-                doc.setFillColor(236, 240, 241);
-                doc.rect(20, yPos - 5, 170, 15, 'F');
-                doc.setFontSize(14);
-                doc.setFont(undefined, 'bold');
-                doc.setTextColor(41, 128, 185);
-                doc.text(title, 25, yPos + 3);
-                doc.setTextColor(0, 0, 0);
-                return yPos + 20;
-            }
-            
-            // Helper function to add colored box
-            function addColoredBox(x, y, width, height, color, text, fontSize = 10) {
-                doc.setFillColor(color[0], color[1], color[2]);
-                doc.rect(x, y, width, height, 'F');
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(fontSize);
-                doc.setFont(undefined, 'bold');
-                doc.text(text, x + 5, y + height/2 + 3);
-                doc.setTextColor(0, 0, 0);
-            }
-            
-            // Helper function to check page break
-            function checkPageBreak(requiredSpace) {
-                if (yPosition + requiredSpace > 270) {
-                    doc.addPage();
-                    yPosition = 30;
-                    addHeader();
-                    addPageNumber(doc.internal.getCurrentPageInfo().pageNumber);
-                }
-            }
-            
-            // Start with first page
-            addHeader();
-            addPageNumber(1);
-            
-            // Table of Contents
-            yPosition = 40;
-            yPosition = addSectionDivider(yPosition, '📋 Table of Contents');
-            
-            const tocItems = [
-                '📊 Executive Summary',
-                '💡 Key Insights', 
-                '🔄 User Journey Steps',
-                '🧠 Key Microbehaviors'
-            ];
-            
-            doc.setFontSize(11);
-            tocItems.forEach((item, index) => {
-                doc.setFont(undefined, 'normal');
-                doc.text(`${index + 1}.`, 30, yPosition);
-                doc.setFont(undefined, 'bold');
-                doc.text(item, 45, yPosition);
-                yPosition += 12;
-            });
-            
-            yPosition += 15;
-            
-            // Executive Summary Section
-            yPosition = addSectionDivider(yPosition, '📊 Executive Summary');
-            
-            // Summary metrics in colored boxes
-            const totalSteps = reportData.journey_steps?.length || 0;
-            const primaryGoal = reportData.primary_goal || 'Not specified';
-            const funnelType = reportData.conversion_funnel_type || 'Standard';
-            const complexity = reportData.journey_complexity || 'Medium';
-            
-            // First row of metrics
-            addColoredBox(25, yPosition, 40, 20, [52, 152, 219], totalSteps.toString(), 12);
-            doc.setFontSize(10);
-            doc.text('Total Steps', 25, yPosition + 25);
-            
-            addColoredBox(75, yPosition, 40, 20, [46, 204, 113], complexity, 10);
-            doc.setFontSize(10);
-            doc.text('Complexity', 75, yPosition + 25);
-            
-            addColoredBox(125, yPosition, 40, 20, [155, 89, 182], funnelType, 10);
-            doc.setFontSize(10);
-            doc.text('Funnel Type', 125, yPosition + 25);
-            
-            yPosition += 40;
-            
-            // Website and Goal info
-            doc.setFontSize(12);
+            // Title
+            doc.setFontSize(24);
             doc.setFont(undefined, 'bold');
-            doc.text('🌐 Website:', 25, yPosition);
-            doc.setFont(undefined, 'normal');
-            doc.text(reportData.url, 60, yPosition);
+            doc.setTextColor(41, 128, 185);
+            doc.text('User Journey Analysis Report', 20, yPosition);
+            yPosition += 25;
             
+            // Website and Goal
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(0, 0, 0);
+            doc.text(`Website: ${reportData.url}`, 20, yPosition);
             yPosition += 15;
+            
             if (reportData.goal) {
-                doc.setFont(undefined, 'bold');
-                doc.text('🎯 Goal:', 25, yPosition);
-                doc.setFont(undefined, 'normal');
-                doc.text(reportData.goal, 60, yPosition);
+                doc.text(`Goal: ${reportData.goal}`, 20, yPosition);
                 yPosition += 15;
             }
             
             yPosition += 10;
             
-            // Key Insights Section
-            yPosition = addSectionDivider(yPosition, '💡 Key Insights');
+            // Summary Info
+            const totalSteps = reportData.journey_steps?.length || 0;
+            const primaryGoal = reportData.primary_goal || 'Not specified';
+            const funnelType = reportData.conversion_funnel_type || 'Standard';
+            const complexity = reportData.journey_complexity || 'Medium';
             
-            if (reportData.key_moments_of_truth && reportData.key_moments_of_truth.length > 0) {
-                doc.setFontSize(12);
-                doc.setFont(undefined, 'bold');
-                doc.text('🎯 Key Moments of Truth:', 25, yPosition);
-                yPosition += 15;
-                
-                doc.setFont(undefined, 'normal');
-                doc.setFontSize(10);
-                reportData.key_moments_of_truth.forEach((moment, index) => {
-                    const lines = doc.splitTextToSize(`• ${moment}`, 160);
-                    checkPageBreak(lines.length * 6 + 5);
-                    doc.text(lines, 30, yPosition);
-                    yPosition += lines.length * 6 + 5;
-                });
-                
-                yPosition += 10;
-            }
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text('Summary', 20, yPosition);
+            yPosition += 20;
             
-            if (reportData.optimization_priorities && reportData.optimization_priorities.length > 0) {
-                doc.setFontSize(12);
-                doc.setFont(undefined, 'bold');
-                doc.text('🚀 Optimization Priorities:', 25, yPosition);
-                yPosition += 15;
-                
-                doc.setFont(undefined, 'normal');
-                doc.setFontSize(10);
-                reportData.optimization_priorities.forEach((priority, index) => {
-                    const lines = doc.splitTextToSize(`• ${priority}`, 160);
-                    checkPageBreak(lines.length * 6 + 5);
-                    doc.text(lines, 30, yPosition);
-                    yPosition += lines.length * 6 + 5;
-                });
-                
-                yPosition += 10;
-            }
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.text(`• Total Steps: ${totalSteps}`, 25, yPosition);
+            yPosition += 12;
+            doc.text(`• Primary Goal: ${primaryGoal}`, 25, yPosition);
+            yPosition += 12;
+            doc.text(`• Funnel Type: ${funnelType}`, 25, yPosition);
+            yPosition += 12;
+            doc.text(`• Complexity: ${complexity}`, 25, yPosition);
+            yPosition += 20;
             
-            // 9-Step Conversion Funnel Section
-            yPosition = addSectionDivider(yPosition, '🔄 9-Step Conversion Funnel');
+            // User Journey Steps (from actual scraped content, max 10)
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(41, 128, 185);
+            doc.text('User Journey Steps', 20, yPosition);
+            yPosition += 20;
             
-            // Define the standard 9-step funnel structure
-            const standardFunnelSteps = [
-                { number: 1, name: 'Landing', description: 'User arrives via ad, social link, or referral' },
-                { number: 2, name: 'Headline', description: 'User reads main headline + subheadline' },
-                { number: 3, name: 'Credibility', description: 'User glances at credibility elements (logos, revenue, success rate)' },
-                { number: 4, name: 'Process', description: 'User understands the framework ("How It Works")' },
-                { number: 5, name: 'Social Proof', description: 'User reviews testimonials and case studies' },
-                { number: 6, name: 'Pricing', description: 'User checks pricing table and compares features' },
-                { number: 7, name: 'CTA', description: 'User clicks conversion buttons' },
-                { number: 8, name: 'Form', description: 'User fills out booking/contact forms' },
-                { number: 9, name: 'Confirmation', description: 'User confirms calendar slots or completes action' }
-            ];
-            
-            // Map actual journey steps to standard funnel
             const journeySteps = reportData.journey_steps || [];
-            const mappedSteps = standardFunnelSteps.map(standardStep => {
-                // Try to find matching step from analysis
-                const matchingStep = journeySteps.find(step => 
-                    step.step_name.toLowerCase().includes(standardStep.name.toLowerCase()) ||
-                    standardStep.name.toLowerCase().includes(step.step_name.toLowerCase())
-                );
-                
-                return {
-                    ...standardStep,
-                    actualData: matchingStep || null
-                };
-            });
+            const totalSteps = journeySteps.length;
             
-            mappedSteps.forEach((step, stepIndex) => {
-                checkPageBreak(40);
+            if (totalSteps > 0) {
+                // Limit to max 10 steps for clean PDF (same as website)
+                const displaySteps = journeySteps.slice(0, 10);
                 
-                // Step number in colored circle
-                doc.setFillColor(52, 152, 219);
-                doc.circle(35, yPosition + 3, 12, 'F');
-                doc.setTextColor(255, 255, 255);
-                doc.setFontSize(12);
-                doc.setFont(undefined, 'bold');
-                doc.text(step.number.toString(), 30, yPosition + 7);
-                doc.setTextColor(0, 0, 0);
-                
-                // Step name and description
-                doc.setFontSize(14);
-                doc.setFont(undefined, 'bold');
-                doc.text(step.name, 55, yPosition + 5);
-                
-                doc.setFontSize(10);
-                doc.setFont(undefined, 'normal');
-                doc.setTextColor(100, 100, 100);
-                const descLines = doc.splitTextToSize(step.description, 140);
-                checkPageBreak(descLines.length * 6 + 5);
-                doc.text(descLines, 55, yPosition + 15);
-                yPosition += descLines.length * 6 + 20;
-                
-                // If we have actual analysis data for this step, add key insights
-                if (step.actualData) {
-                    doc.setFontSize(9);
+                displaySteps.forEach((step, index) => {
+                    // Check if we need a new page
+                    if (yPosition > 250) {
+                        doc.addPage();
+                        yPosition = 30;
+                    }
+                    
+                    // Step number and name
+                    doc.setFontSize(12);
+                    doc.setFont(undefined, 'bold');
                     doc.setTextColor(52, 152, 219);
-                    doc.setFont(undefined, 'bold');
-                    doc.text('Key Insight:', 55, yPosition);
+                    doc.text(`${index + 1}. ${step.step_name || `Step ${index + 1}`}`, 20, yPosition);
                     yPosition += 8;
                     
+                    // Step description
+                    doc.setFontSize(10);
                     doc.setFont(undefined, 'normal');
                     doc.setTextColor(0, 0, 0);
-                    const insightLines = doc.splitTextToSize(step.actualData.description, 140);
-                    checkPageBreak(insightLines.length * 6 + 5);
-                    doc.text(insightLines, 55, yPosition);
-                    yPosition += insightLines.length * 6 + 10;
-                }
-                
-
-                
-
-                
-                // Friction points
-                if (step.friction_points && step.friction_points.length > 0) {
-                    doc.setFont(undefined, 'bold');
-                    doc.setTextColor(231, 76, 60);
-                    doc.text('⚠️ Friction Points:', 30, yPosition);
-                    yPosition += 8;
-                    
-                    doc.setFont(undefined, 'normal');
-                    doc.setTextColor(0, 0, 0);
-                    doc.setFontSize(9);
-                    step.friction_points.forEach(point => {
-                        const lines = doc.splitTextToSize(`• ${point}`, 150);
-                        checkPageBreak(lines.length * 6 + 3);
-                        doc.text(lines, 35, yPosition);
-                        yPosition += lines.length * 6 + 3;
-                    });
-                    yPosition += 5;
-                }
-                
-                // Optimization suggestions
-                if (step.optimization_suggestions && step.optimization_suggestions.length > 0) {
-                    doc.setFont(undefined, 'bold');
-                    doc.setTextColor(155, 89, 182);
-                    doc.text('💡 Optimization Suggestions:', 30, yPosition);
-                    yPosition += 8;
-                    
-                    doc.setFont(undefined, 'normal');
-                    doc.setTextColor(0, 0, 0);
-                    doc.setFontSize(9);
-                    step.optimization_suggestions.forEach(suggestion => {
-                        const lines = doc.splitTextToSize(`• ${suggestion}`, 150);
-                        checkPageBreak(lines.length * 6 + 3);
-                        doc.text(lines, 35, yPosition);
-                        yPosition += lines.length * 6 + 3;
-                    });
-                    yPosition += 5;
-                }
-                
-                // Add connector arrow between steps
-                if (stepIndex < mappedSteps.length - 1) {
-                    doc.setTextColor(52, 152, 219);
-                    doc.setFontSize(16);
-                    doc.text('↓', 35, yPosition);
+                    doc.text(step.description || 'No description available', 30, yPosition);
                     yPosition += 15;
-                    doc.setTextColor(0, 0, 0);
-                }
-            });
-            
-            // Microbehaviors Section (if available)
-            const allMicrobehaviors = [];
-            journeySteps.forEach(step => {
-                if (step.microbehaviors && step.microbehaviors.length > 0) {
-                    step.microbehaviors.forEach(mb => {
-                        allMicrobehaviors.push({
-                            behavior: mb.behavior,
-                            context: mb.step_context || step.step_name
-                        });
-                    });
-                }
-            });
-            
-            if (allMicrobehaviors.length > 0) {
-                yPosition = addSectionDivider(yPosition, '🧠 Key Microbehaviors');
-                
-                allMicrobehaviors.forEach((item, index) => {
-                    checkPageBreak(30);
                     
-                    // Behavior number with colored circle
-                    doc.setFillColor(52, 152, 219);
-                    doc.circle(35, yPosition + 3, 8, 'F');
-                    doc.setTextColor(255, 255, 255);
-                    doc.setFontSize(10);
-                    doc.setFont(undefined, 'bold');
-                    doc.text((index + 1).toString(), 32, yPosition + 6);
-                    doc.setTextColor(0, 0, 0);
-                    
-                    // Behavior text
-                    doc.setFontSize(10);
-                    doc.setFont(undefined, 'bold');
-                    const behaviorLines = doc.splitTextToSize(item.behavior, 140);
-                    checkPageBreak(behaviorLines.length * 6 + 5);
-                    doc.text(behaviorLines, 50, yPosition);
-                    yPosition += behaviorLines.length * 6 + 5;
-                    
-                    // Context
-                    doc.setFont(undefined, 'italic');
-                    doc.setTextColor(100, 100, 100);
-                    const contextLines = doc.splitTextToSize(`→ ${item.context}`, 140);
-                    checkPageBreak(contextLines.length * 6 + 8);
-                    doc.text(contextLines, 50, yPosition);
-                    yPosition += contextLines.length * 6 + 8;
-                    
-                    doc.setFont(undefined, 'normal');
-                    doc.setTextColor(0, 0, 0);
-                    
-                    // Add arrow except for last item
-                    if (index < allMicrobehaviors.length - 1) {
-                        doc.setTextColor(52, 152, 219);
-                        doc.text('↓', 40, yPosition);
+                    // Add arrow between steps (except last)
+                    if (index < displaySteps.length - 1) {
+                        doc.setTextColor(150, 150, 150);
+                        doc.text('↓', 15, yPosition);
                         yPosition += 10;
-                        doc.setTextColor(0, 0, 0);
                     }
                 });
+                
+                // Add note if more than 10 steps were found
+                if (totalSteps > 10) {
+                    yPosition += 10;
+                    doc.setFontSize(9);
+                    doc.setTextColor(100, 100, 100);
+                    doc.text(`Note: Found ${totalSteps} total steps, showing first 10 for clarity.`, 20, yPosition);
+                    yPosition += 15;
+                }
+            } else {
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'normal');
+                doc.text('No journey steps found in the analysis.', 20, yPosition);
+                yPosition += 15;
             }
             
-            // Summary Statistics
-            if (journeySteps.length > 0) {
-                yPosition = addSectionDivider(yPosition, '📈 Summary Statistics');
+            yPosition += 15;
+            
+            // Key Insights (if available)
+            if (reportData.key_moments_of_truth && reportData.key_moments_of_truth.length > 0) {
+                if (yPosition > 200) {
+                    doc.addPage();
+                    yPosition = 30;
+                }
                 
-                // Calculate statistics
-                const totalFrictionPoints = journeySteps.reduce((sum, step) => 
-                    sum + (step.friction_points ? step.friction_points.length : 0), 0);
-                const totalOptimizations = journeySteps.reduce((sum, step) => 
-                    sum + (step.optimization_suggestions ? step.optimization_suggestions.length : 0), 0);
-                const totalContentElements = journeySteps.reduce((sum, step) => 
-                    sum + (step.content_elements ? step.content_elements.length : 0), 0);
+                doc.setFontSize(14);
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(41, 128, 185);
+                doc.text('Key Insights', 20, yPosition);
+                yPosition += 20;
                 
-                // Create summary boxes
-                const stats = [
-                    { label: 'Total Steps', value: totalSteps, color: [52, 152, 219] },
-                    { label: 'Friction Points', value: totalFrictionPoints, color: [231, 76, 60] },
-                    { label: 'Optimizations', value: totalOptimizations, color: [46, 204, 113] },
-                    { label: 'Content Elements', value: totalContentElements, color: [155, 89, 182] }
-                ];
+                doc.setFontSize(10);
+                doc.setFont(undefined, 'normal');
+                doc.setTextColor(0, 0, 0);
                 
-                let xPos = 25;
-                stats.forEach((stat, index) => {
-                    addColoredBox(xPos, yPosition, 40, 25, stat.color, stat.value.toString(), 12);
-                    doc.setFontSize(9);
-                    doc.setTextColor(0, 0, 0);
-                    doc.text(stat.label, xPos, yPosition + 30);
-                    xPos += 45;
+                reportData.key_moments_of_truth.forEach((insight, index) => {
+                    if (yPosition > 250) {
+                        doc.addPage();
+                        yPosition = 30;
+                    }
+                    doc.text(`• ${insight}`, 25, yPosition);
+                    yPosition += 12;
                 });
                 
-                yPosition += 45;
+                yPosition += 15;
             }
             
-            // Footer with timestamp
-            const currentPage = doc.internal.getCurrentPageInfo().pageNumber;
+            // Footer
             doc.setFontSize(9);
             doc.setTextColor(100, 100, 100);
-            doc.text(`Report generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}`, 20, 280);
-            doc.text(`Generated by Microbehaviour Analyzer`, 20, 285);
+            doc.text(`Generated on ${new Date().toLocaleDateString()}`, 20, 280);
             
             // Save the PDF
-            const fileName = `user-journey-analysis-${reportData.url.replace(/[^a-zA-Z0-9]/g, '-')}-${new Date().toISOString().split('T')[0]}.pdf`;
+            const fileName = `journey-analysis-${new Date().toISOString().split('T')[0]}.pdf`;
             doc.save(fileName);
         }
 
