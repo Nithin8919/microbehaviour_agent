@@ -26,3 +26,5 @@ echo "Frontend deployed successfully!"
 echo "Frontend available at: http://localhost:8000"
 
 
+
+

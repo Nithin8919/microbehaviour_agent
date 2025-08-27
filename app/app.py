@@ -38,7 +38,20 @@ print("=== END ENVIRONMENT SETUP ===\n")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__)
+# Get the directory where this file is located
+current_dir = os.path.dirname(os.path.abspath(__file__))
+template_dir = os.path.join(current_dir, 'templates')
+
+# Initialize Flask app with explicit template folder
+app = Flask(__name__, template_folder=template_dir)
+
+# Log template directory for debugging
+print(f"=== FLASK APP SETUP ===")
+print(f"Current directory: {current_dir}")
+print(f"Template directory: {template_dir}")
+print(f"Template directory exists: {os.path.exists(template_dir)}")
+print(f"Template files: {os.listdir(template_dir) if os.path.exists(template_dir) else 'N/A'}")
+print("=== END FLASK APP SETUP ===\n")
 
 @app.route('/')
 def index():
