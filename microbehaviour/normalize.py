@@ -136,4 +136,3 @@ def backfill_timeline(stages: List[TimelineStage]) -> List[TimelineStage]:
         st.index = idx
     return stages
 
-

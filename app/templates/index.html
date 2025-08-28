@@ -973,15 +973,8 @@
                 function displayMicrobehaviors(reportData) {
             const microbehaviorsList = document.getElementById('microbehaviorsList');
             
-            // Enhanced debugging for deployment issues
-            console.log('=== DEPLOYMENT DEBUG INFO ===');
-            console.log('Full report data:', reportData);
-            console.log('Journey steps:', reportData.journey_steps);
-            console.log('Data keys:', Object.keys(reportData));
-            console.log('Total journey steps found:', reportData.journey_steps ? reportData.journey_steps.length : 'undefined');
-            console.log('URL being analyzed:', reportData.url);
-            console.log('Analysis timestamp:', new Date().toISOString());
-            console.log('================================');
+            console.log('=== MICROBEHAVIOR DISPLAY DEBUG ===');
+            console.log('Report data:', reportData);
             
             const journeySteps = reportData.journey_steps || [];
             
@@ -990,48 +983,139 @@
                 return;
             }
 
-            // Extract all microbehaviors in sequence
+            // Extract all microbehaviors and filter out non-meaningful ones
             const allMicrobehaviors = [];
+            const excludeKeywords = ['scroll', 'wait', 'load', 'navigate', 'look at', 'view page'];
+            
             journeySteps.forEach(step => {
                 if (step.microbehaviors && step.microbehaviors.length > 0) {
                     step.microbehaviors.forEach(mb => {
-                        allMicrobehaviors.push({
-                            behavior: mb.behavior,
-                            context: mb.step_context || 'User Action'
-                        });
+                        // Filter out scrolling and non-meaningful behaviors
+                        const behaviorLower = mb.behavior.toLowerCase();
+                        const isExcluded = excludeKeywords.some(keyword => behaviorLower.includes(keyword));
+                        
+                        if (!isExcluded) {
+                            allMicrobehaviors.push({
+                                behavior: mb.behavior,
+                                context: mb.step_context || 'User Action',
+                                type: getActionType(mb.behavior)
+                            });
+                        }
                     });
                 }
             });
 
             if (allMicrobehaviors.length === 0) {
-                microbehaviorsList.innerHTML = '<p>No microbehaviors found in the journey steps.</p>';
+                microbehaviorsList.innerHTML = '<p>No meaningful microbehaviors found.</p>';
                 return;
             }
 
-            // Limit to max 10 microbehaviors for clean display
-            const displayMicrobehaviors = allMicrobehaviors.slice(0, 10);
-            const totalMicrobehaviors = allMicrobehaviors.length;
+            // Limit to 7-9 microbehaviors for clean display
+            const displayMicrobehaviors = allMicrobehaviors.slice(0, 9);
+            const totalMicrobehaviors = displayMicrobehaviors.length;
 
-            // Display summary info
+            // Detect if there's a CTA click and mark post-CTA behaviors
+            let ctaClickIndex = -1;
+            const ctaKeywords = ['get started', 'book now', 'sign up', 'start free', 'try now', 'schedule'];
+            
+            displayMicrobehaviors.forEach((item, index) => {
+                const behaviorLower = item.behavior.toLowerCase();
+                if (ctaKeywords.some(keyword => behaviorLower.includes(keyword)) && behaviorLower.includes('click')) {
+                    ctaClickIndex = index;
+                }
+            });
+
+            // Display summary info with better styling
             let listHTML = `
-                <div class="summary-info">
-                    <h3>${totalMicrobehaviors} Key Microbehaviors</h3>
-                    <p>User actions extracted from ${reportData.url}${totalMicrobehaviors > 10 ? ' (showing first 10)' : ''}</p>
+                <div class="summary-info" style="background: linear-gradient(135deg, #f8fafc 0%, #e0e7ff 100%); border: 2px solid #6366f1; box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);">
+                    <h3 style="color: #6366f1; font-size: 1.5rem;">${totalMicrobehaviors} Key Microbehaviors</h3>
+                    <p style="color: #64748b; margin-top: 0.5rem;">Critical user actions for conversion on ${reportData.url}</p>
                 </div>
             `;
 
-            // Display as numbered list
-            listHTML += '<div class="behavior-list">';
+            // Create behavior type legend
+            listHTML += `
+                <div style="display: flex; gap: 1rem; margin-bottom: 1.5rem; justify-content: center; flex-wrap: wrap;">
+                    <span style="display: flex; align-items: center; gap: 0.25rem; font-size: 0.85rem; color: #64748b;">
+                        <span style="width: 12px; height: 12px; background: #6366f1; border-radius: 2px;"></span> Click Action
+                    </span>
+                    <span style="display: flex; align-items: center; gap: 0.25rem; font-size: 0.85rem; color: #64748b;">
+                        <span style="width: 12px; height: 12px; background: #10b981; border-radius: 2px;"></span> Form Action
+                    </span>
+                    <span style="display: flex; align-items: center; gap: 0.25rem; font-size: 0.85rem; color: #64748b;">
+                        <span style="width: 12px; height: 12px; background: #06b6d4; border-radius: 2px;"></span> Reading
+                    </span>
+                    <span style="display: flex; align-items: center; gap: 0.25rem; font-size: 0.85rem; color: #64748b;">
+                        <span style="width: 12px; height: 12px; background: #8b5cf6; border-radius: 2px;"></span> Conversion
+                    </span>
+                </div>
+            `;
+
+            // Display microbehaviors with enhanced styling
+            listHTML += '<div class="behavior-list" style="position: relative;">';
+            
+            // Add conversion funnel indicator if CTA is clicked
+            if (ctaClickIndex >= 0) {
+                const conversionStartY = ctaClickIndex * 85 + 50; // Approximate position
+                listHTML += `
+                    <div style="position: absolute; left: 5px; top: ${conversionStartY}px; 
+                                background: linear-gradient(180deg, rgba(16,185,129,0.1) 0%, rgba(16,185,129,0.05) 100%);
+                                width: calc(100% - 10px); height: ${(displayMicrobehaviors.length - ctaClickIndex) * 85}px;
+                                border-radius: 8px; z-index: 0;">
+                        <div style="position: absolute; top: 10px; right: 10px; 
+                                   background: #10b981; color: white; padding: 4px 8px; 
+                                   border-radius: 4px; font-size: 0.75rem; font-weight: 600;">
+                            CONVERSION FLOW
+                        </div>
+                    </div>
+                `;
+            }
+            
             displayMicrobehaviors.forEach((item, index) => {
                 const isLast = index === displayMicrobehaviors.length - 1;
+                const isPostCTA = ctaClickIndex >= 0 && index > ctaClickIndex;
+                
+                // Determine action type and color
+                let actionColor = '#6366f1'; // Default: primary
+                let actionIcon = 'fas fa-mouse-pointer';
+                
+                if (item.type === 'Fill') {
+                    actionColor = '#10b981';
+                    actionIcon = 'fas fa-keyboard';
+                } else if (item.type === 'Read') {
+                    actionColor = '#06b6d4';
+                    actionIcon = 'fas fa-eye';
+                } else if (item.type === 'Submit' || isPostCTA) {
+                    actionColor = '#8b5cf6';
+                    actionIcon = 'fas fa-check-circle';
+                }
+                
                 listHTML += `
-                    <div class="behavior-item">
-                        <div class="behavior-number">${index + 1}</div>
-                        <div class="behavior-content">
-                            <div class="behavior-text">${item.behavior}</div>
-                            <div class="behavior-context">→ ${item.context}</div>
+                    <div class="behavior-item" style="position: relative; z-index: 1; 
+                         ${isPostCTA ? 'background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%); border-color: #10b981;' : ''}">
+                        <div class="behavior-number" style="background: linear-gradient(135deg, ${actionColor} 0%, ${actionColor}dd 100%);">
+                            ${index + 1}
                         </div>
-                        ${!isLast ? '<div class="behavior-arrow">↓</div>' : ''}
+                        <div class="behavior-content" style="flex: 1;">
+                            <div class="behavior-text" style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="${actionIcon}" style="color: ${actionColor}; font-size: 0.9rem;"></i>
+                                <span>${item.behavior}</span>
+                            </div>
+                            <div class="behavior-context" style="margin-left: 1.5rem;">
+                                → ${item.context}
+                                ${isPostCTA ? '<span style="background: #10b981; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.7rem; margin-left: 0.5rem;">CONVERSION STEP</span>' : ''}
+                            </div>
+                        </div>
+                        ${!isLast ? `
+                            <div class="behavior-arrow" style="color: ${isPostCTA ? '#10b981' : '#6366f1'}; 
+                                 font-size: ${isPostCTA ? '1.8rem' : '1.5rem'};">
+                                ${isPostCTA ? '⇓' : '↓'}
+                            </div>
+                        ` : `
+                            <div style="color: #10b981; font-size: 1.2rem; margin-left: 1rem;">
+                                <i class="fas fa-flag-checkered"></i>
+                            </div>
+                        `}
                     </div>
                 `;
             });
@@ -1040,173 +1124,312 @@
             microbehaviorsList.innerHTML = listHTML;
         }
 
+        function getActionType(behavior) {
+            const behaviorLower = behavior.toLowerCase();
+            if (behaviorLower.includes('click')) return 'Click';
+            if (behaviorLower.includes('fill') || behaviorLower.includes('enter')) return 'Fill';
+            if (behaviorLower.includes('read') || behaviorLower.includes('review')) return 'Read';
+            if (behaviorLower.includes('submit') || behaviorLower.includes('confirm')) return 'Submit';
+            if (behaviorLower.includes('select') || behaviorLower.includes('choose')) return 'Select';
+            if (behaviorLower.includes('compare') || behaviorLower.includes('check')) return 'Compare';
+            return 'Action';
+        }
+
         function generatePDF(reportData) {
             const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
+            
+            // Professional color scheme
+            const colors = {
+                primary: [99, 102, 241],      // Indigo
+                secondary: [139, 92, 246],    // Purple
+                accent: [6, 182, 212],        // Cyan
+                success: [16, 185, 129],      // Emerald
+                text: [30, 41, 59],           // Dark slate
+                lightText: [100, 116, 139],   // Slate
+                background: [248, 250, 252]   // Light gray
+            };
             
             // Set document properties
             doc.setProperties({
                 title: 'User Journey Analysis Report',
                 subject: 'Microbehavior Analysis',
                 author: 'Microbehaviour Analyzer',
-                creator: 'Microbehaviour Tool'
+                keywords: 'microbehavior, user journey, conversion, analysis',
+                creator: 'Professional Microbehaviour Tool'
             });
             
-            let yPosition = 30;
+            let yPosition = 20;
             
-            // Title
-            doc.setFontSize(24);
-            doc.setFont(undefined, 'bold');
-            doc.setTextColor(41, 128, 185);
-            doc.text('User Journey Analysis Report', 20, yPosition);
-            yPosition += 25;
+            // Professional Header with gradient effect
+            doc.setFillColor(...colors.primary);
+            doc.rect(0, 0, 210, 45, 'F');
             
-            // Website and Goal
-            doc.setFontSize(12);
-            doc.setFont(undefined, 'normal');
-            doc.setTextColor(0, 0, 0);
-            doc.text(`Website: ${reportData.url}`, 20, yPosition);
-            yPosition += 15;
-            
-            if (reportData.goal) {
-                doc.text(`Goal: ${reportData.goal}`, 20, yPosition);
-                yPosition += 15;
+            // Add subtle pattern overlay
+            doc.setDrawColor(...colors.secondary);
+            doc.setLineWidth(0.1);
+            for (let i = 0; i < 45; i += 3) {
+                doc.line(0, i, 210, i);
             }
             
-            yPosition += 10;
+            // Title
+            doc.setFontSize(28);
+            doc.setFont(undefined, 'bold');
+            doc.setTextColor(255, 255, 255);
+            doc.text('User Journey Analysis Report', 105, 25, { align: 'center' });
             
-            // Summary Info
-            const totalSteps = reportData.journey_steps?.length || 0;
-            const primaryGoal = reportData.primary_goal || 'Not specified';
-            const funnelType = reportData.conversion_funnel_type || 'Standard';
-            const complexity = reportData.journey_complexity || 'Medium';
+            // Subtitle with date
+            doc.setFontSize(11);
+            doc.setFont(undefined, 'normal');
+            const reportDate = new Date().toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'long', 
+                day: 'numeric' 
+            });
+            doc.text(`Generated on ${reportDate}`, 105, 35, { align: 'center' });
             
+            yPosition = 60;
+            
+            // Executive Summary Box
+            doc.setFillColor(...colors.background);
+            doc.roundedRect(15, yPosition - 5, 180, 45, 3, 3, 'F');
+            
+            // Summary Header
             doc.setFontSize(14);
             doc.setFont(undefined, 'bold');
-            doc.text('Summary', 20, yPosition);
-            yPosition += 20;
+            doc.setTextColor(...colors.primary);
+            doc.text('Executive Summary', 20, yPosition + 5);
             
+            yPosition += 12;
+            
+            // Website info
             doc.setFontSize(10);
             doc.setFont(undefined, 'normal');
-            doc.text(`• Total Steps: ${totalSteps}`, 25, yPosition);
-            yPosition += 12;
-            doc.text(`• Primary Goal: ${primaryGoal}`, 25, yPosition);
-            yPosition += 12;
-            doc.text(`• Funnel Type: ${funnelType}`, 25, yPosition);
-            yPosition += 12;
-            doc.text(`• Complexity: ${complexity}`, 25, yPosition);
-            yPosition += 20;
+            doc.setTextColor(...colors.text);
+            doc.text(`Website: ${reportData.url}`, 20, yPosition);
+            yPosition += 7;
             
-            // Key Microbehaviors (from actual scraped content, max 10)
-            doc.setFontSize(16);
+            if (reportData.goal) {
+                doc.text(`Business Goal: ${reportData.goal}`, 20, yPosition);
+                yPosition += 7;
+            }
+            
+            // Key metrics in a grid
+            const metrics = [
+                { label: 'Microbehaviors', value: getMicrobehaviorCount(reportData) },
+                { label: 'Conversion Type', value: reportData.conversion_funnel_type || 'Standard' },
+                { label: 'Complexity', value: reportData.journey_complexity || 'Medium' }
+            ];
+            
+            doc.setFontSize(9);
+            let xPos = 20;
+            for (const metric of metrics) {
+                doc.setFont(undefined, 'bold');
+                doc.setTextColor(...colors.lightText);
+                doc.text(metric.label + ':', xPos, yPosition);
+                doc.setFont(undefined, 'normal');
+                doc.setTextColor(...colors.text);
+                doc.text(metric.value.toString(), xPos + 30, yPosition);
+                xPos += 60;
+            }
+            
+            yPosition += 25;
+            
+            // Section: User Microbehaviors
+            doc.setFillColor(...colors.primary);
+            doc.rect(15, yPosition, 180, 10, 'F');
+            doc.setFontSize(13);
             doc.setFont(undefined, 'bold');
-            doc.setTextColor(41, 128, 185);
-            doc.text('Key Microbehaviors', 20, yPosition);
+            doc.setTextColor(255, 255, 255);
+            doc.text('User Journey Microbehaviors', 20, yPosition + 7);
+            
             yPosition += 20;
             
-            const journeySteps = reportData.journey_steps || [];
-            const allMicrobehaviors = [];
+            // Extract microbehaviors
+            const microbehaviors = extractMicrobehaviors(reportData);
             
-            // Extract all microbehaviors from journey steps
-            journeySteps.forEach(step => {
-                if (step.microbehaviors && step.microbehaviors.length > 0) {
-                    step.microbehaviors.forEach(mb => {
-                        allMicrobehaviors.push({
-                            behavior: mb.behavior,
-                            context: mb.step_context || 'User Action'
-                        });
-                    });
-                }
-            });
-            
-            if (allMicrobehaviors.length > 0) {
-                // Limit to max 10 microbehaviors for clean PDF (same as website)
-                const displayMicrobehaviors = allMicrobehaviors.slice(0, 10);
-                const totalMicrobehaviors = allMicrobehaviors.length;
-                
-                displayMicrobehaviors.forEach((item, index) => {
+            if (microbehaviors.length > 0) {
+                // Visual journey flow
+                microbehaviors.forEach((item, index) => {
                     // Check if we need a new page
                     if (yPosition > 250) {
                         doc.addPage();
                         yPosition = 30;
+                        
+                        // Add header to new page
+                        doc.setFillColor(...colors.background);
+                        doc.rect(0, 0, 210, 20, 'F');
+                        doc.setFontSize(10);
+                        doc.setFont(undefined, 'normal');
+                        doc.setTextColor(...colors.lightText);
+                        doc.text('User Journey Analysis Report (continued)', 105, 12, { align: 'center' });
+                        yPosition = 40;
                     }
                     
-                    // Microbehavior number and behavior
-                    doc.setFontSize(12);
-                    doc.setFont(undefined, 'bold');
-                    doc.setTextColor(52, 152, 219);
-                    doc.text(`${index + 1}. ${item.behavior}`, 20, yPosition);
-                    yPosition += 8;
-                    
-                    // Context
+                    // Draw step number circle
+                    const circleX = 25;
+                    doc.setFillColor(...colors.accent);
+                    doc.circle(circleX, yPosition, 5, 'F');
                     doc.setFontSize(10);
-                    doc.setFont(undefined, 'normal');
-                    doc.setTextColor(0, 0, 0);
-                    doc.text(`→ ${item.context}`, 30, yPosition);
-                    yPosition += 15;
+                    doc.setFont(undefined, 'bold');
+                    doc.setTextColor(255, 255, 255);
+                    doc.text((index + 1).toString(), circleX, yPosition + 1, { align: 'center' });
                     
-                    // Add arrow between microbehaviors (except last)
-                    if (index < displayMicrobehaviors.length - 1) {
-                        doc.setTextColor(150, 150, 150);
-                        doc.text('↓', 15, yPosition);
-                        yPosition += 10;
+                    // Draw connecting line (except for last item)
+                    if (index < microbehaviors.length - 1) {
+                        doc.setDrawColor(...colors.background);
+                        doc.setLineWidth(2);
+                        doc.line(circleX, yPosition + 6, circleX, yPosition + 20);
                     }
+                    
+                    // Behavior box
+                    doc.setFillColor(255, 255, 255);
+                    doc.setDrawColor(...colors.background);
+                    doc.roundedRect(35, yPosition - 6, 155, 16, 2, 2, 'FD');
+                    
+                    // Behavior text
+                    doc.setFontSize(11);
+                    doc.setFont(undefined, 'bold');
+                    doc.setTextColor(...colors.text);
+                    const behaviorText = item.behavior.length > 70 
+                        ? item.behavior.substring(0, 67) + '...' 
+                        : item.behavior;
+                    doc.text(behaviorText, 40, yPosition);
+                    
+                    // Context badge
+                    doc.setFontSize(8);
+                    doc.setFont(undefined, 'normal');
+                    doc.setTextColor(...colors.lightText);
+                    doc.text(`→ ${item.context}`, 40, yPosition + 5);
+                    
+                    // Action type indicator
+                    const actionType = getActionType(item.behavior);
+                    const typeColors = {
+                        'Click': colors.primary,
+                        'Fill': colors.success,
+                        'Read': colors.accent,
+                        'Submit': colors.secondary,
+                        'Select': colors.accent
+                    };
+                    
+                    if (typeColors[actionType]) {
+                        doc.setFillColor(...typeColors[actionType]);
+                        doc.roundedRect(175, yPosition - 4, 12, 6, 1, 1, 'F');
+                        doc.setFontSize(6);
+                        doc.setTextColor(255, 255, 255);
+                        doc.text(actionType.toUpperCase(), 181, yPosition - 0.5, { align: 'center' });
+                    }
+                    
+                    yPosition += 24;
                 });
                 
-                // Add note if more than 10 microbehaviors were found
-                if (totalMicrobehaviors > 10) {
-                    yPosition += 10;
-                    doc.setFontSize(9);
-                    doc.setTextColor(100, 100, 100);
-                    doc.text(`Note: Found ${totalMicrobehaviors} total microbehaviors, showing first 10 for clarity.`, 20, yPosition);
-                    yPosition += 15;
-                }
-            } else {
-                doc.setFontSize(10);
-                doc.setFont(undefined, 'normal');
-                doc.text('No microbehaviors found in the analysis.', 20, yPosition);
-                yPosition += 15;
+                yPosition += 10;
             }
             
-            yPosition += 15;
+            // Insights Section (if space available or new page)
+            if (yPosition > 200) {
+                doc.addPage();
+                yPosition = 30;
+            }
             
-            // Key Insights (if available)
+            // Key Insights
             if (reportData.key_moments_of_truth && reportData.key_moments_of_truth.length > 0) {
-                if (yPosition > 200) {
-                    doc.addPage();
-                    yPosition = 30;
-                }
-                
-                doc.setFontSize(14);
+                doc.setFillColor(...colors.secondary);
+                doc.rect(15, yPosition, 180, 10, 'F');
+                doc.setFontSize(13);
                 doc.setFont(undefined, 'bold');
-                doc.setTextColor(41, 128, 185);
-                doc.text('Key Insights', 20, yPosition);
+                doc.setTextColor(255, 255, 255);
+                doc.text('Key Insights & Optimization Opportunities', 20, yPosition + 7);
+                
                 yPosition += 20;
                 
-                doc.setFontSize(10);
-                doc.setFont(undefined, 'normal');
-                doc.setTextColor(0, 0, 0);
-                
-                reportData.key_moments_of_truth.forEach((insight, index) => {
+                // Insights in styled boxes
+                reportData.key_moments_of_truth.slice(0, 3).forEach((insight, index) => {
                     if (yPosition > 250) {
                         doc.addPage();
                         yPosition = 30;
                     }
-                    doc.text(`• ${insight}`, 25, yPosition);
-                    yPosition += 12;
+                    
+                    // Insight box
+                    doc.setFillColor(...colors.background);
+                    doc.roundedRect(20, yPosition - 3, 170, 15, 2, 2, 'F');
+                    
+                    // Insight icon
+                    doc.setFillColor(...colors.accent);
+                    doc.circle(25, yPosition + 3, 2, 'F');
+                    
+                    // Insight text
+                    doc.setFontSize(9);
+                    doc.setFont(undefined, 'normal');
+                    doc.setTextColor(...colors.text);
+                    const insightText = insight.length > 100 
+                        ? insight.substring(0, 97) + '...' 
+                        : insight;
+                    doc.text(insightText, 30, yPosition + 3);
+                    
+                    yPosition += 18;
                 });
-                
-                yPosition += 15;
             }
             
             // Footer
-            doc.setFontSize(9);
-            doc.setTextColor(100, 100, 100);
-            doc.text(`Generated on ${new Date().toLocaleDateString()}`, 20, 280);
+            doc.setFontSize(8);
+            doc.setFont(undefined, 'italic');
+            doc.setTextColor(...colors.lightText);
+            doc.text('© Microbehaviour Analyzer - Professional User Journey Analysis', 105, 285, { align: 'center' });
+            
+            // Page numbers
+            const pageCount = doc.internal.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(8);
+                doc.setTextColor(...colors.lightText);
+                doc.text(`Page ${i} of ${pageCount}`, 195, 290, { align: 'right' });
+            }
             
             // Save the PDF
-            const fileName = `journey-analysis-${new Date().toISOString().split('T')[0]}.pdf`;
+            const fileName = `microbehavior-analysis-${reportData.url.replace(/[^a-z0-9]/gi, '-')}-${new Date().toISOString().split('T')[0]}.pdf`;
             doc.save(fileName);
+        }
+
+        // Helper functions for enhanced PDF generation
+        function getMicrobehaviorCount(reportData) {
+            let count = 0;
+            if (reportData.journey_steps) {
+                reportData.journey_steps.forEach(step => {
+                    if (step.microbehaviors) {
+                        count += step.microbehaviors.length;
+                    }
+                });
+            }
+            return count;
+        }
+
+        function extractMicrobehaviors(reportData) {
+            const microbehaviors = [];
+            if (reportData.journey_steps) {
+                reportData.journey_steps.forEach(step => {
+                    if (step.microbehaviors && step.microbehaviors.length > 0) {
+                        step.microbehaviors.forEach(mb => {
+                            microbehaviors.push({
+                                behavior: mb.behavior,
+                                context: mb.step_context || 'User Action'
+                            });
+                        });
+                    }
+                });
+            }
+            // Limit to 9 for clean PDF
+            return microbehaviors.slice(0, 9);
+        }
+
+        function getActionType(behavior) {
+            const behaviorLower = behavior.toLowerCase();
+            if (behaviorLower.includes('click')) return 'Click';
+            if (behaviorLower.includes('fill') || behaviorLower.includes('enter')) return 'Fill';
+            if (behaviorLower.includes('read') || behaviorLower.includes('review')) return 'Read';
+            if (behaviorLower.includes('submit') || behaviorLower.includes('confirm')) return 'Submit';
+            if (behaviorLower.includes('select') || behaviorLower.includes('choose')) return 'Select';
+            return '';
         }
 
         function showLoading() {

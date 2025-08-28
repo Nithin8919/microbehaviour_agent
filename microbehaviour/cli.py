@@ -29,13 +29,13 @@ def main() -> int:
     analyze_parser.add_argument("--url", required=True, help="URL to crawl and analyze")
     analyze_parser.add_argument("--max-pages", type=int, default=10, help="Maximum pages to crawl")
     analyze_parser.add_argument("--max-depth", type=int, default=2, help="Maximum crawl depth")
-    analyze_parser.add_argument("--screenshots", action="store_true", default=True, help="Capture screenshots")
+    analyze_parser.add_argument("--screenshots", action="store_true", default=False, help="Capture screenshots")
     analyze_parser.add_argument("--output", default="site_analysis.json", help="Output file for analysis")
     
     # Test scraping command
     test_parser = subparsers.add_parser("test-scraping", help="Test enhanced hybrid scraping capabilities")
     test_parser.add_argument("--url", required=True, help="URL to test with hybrid scraping")
-    test_parser.add_argument("--screenshot", action="store_true", default=True, help="Capture screenshot")
+    test_parser.add_argument("--screenshot", action="store_true", default=False, help="Capture screenshot")
     
     args = parser.parse_args()
     

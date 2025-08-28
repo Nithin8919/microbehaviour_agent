@@ -138,7 +138,7 @@ def crawl_same_host_enhanced(
     start_url: str, 
     max_pages: int = 10, 
     max_depth: int = 2,
-    capture_screenshots: bool = True,
+    capture_screenshots: bool = False,
     screenshot_dir: Optional[str] = None
 ) -> SiteGraph:
     """Enhanced crawler that captures behavioral data and builds a site graph.
